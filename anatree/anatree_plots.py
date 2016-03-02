@@ -12,9 +12,11 @@ hdisttovert_kalman = ROOT.TH1D("Distance to Vertex","Distance to Vertex (Kalman)
 hdisttovert_pandora = ROOT.TH1D("Distance to Vertex","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100)
 hclosestapproach_kalman = ROOT.TH1D("Closest approach","Closest Approach (Kalman); cm",200,0,100)
 hclosestapproach_pandora = ROOT.TH1D("Closest approach","Closest Approach (Pandora); cm",200,0,100)
+htrackangle_pandora = ROOT.TH1D("Track Angle","Track Angle (Pandora); radians", 200, 0, 6.5)
+htrackangle_kalman = ROOT.TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5)
 
 
-filelim = 500
+filelim = 200
 filepaths= []
 filenames = ''
 cmd2 = 'samweb list-definition-files prodgenie_bnb_nu_uboone_mcc7_ana'
@@ -85,6 +87,7 @@ for myfile in filepaths:
           clap = min(vec_start.Mag(), vec_end.Mag())
 
         hclosestapproach_kalman.Fill(clap)
+        htrackangle_kalman.Fill(theta)
 
       for j in range(0,event.ntracks_pandoraNuKHit):
         dx = event.trkstartx_pandoraNuKHit[j] - event.nuvtxx_truth[i]
@@ -108,7 +111,7 @@ for myfile in filepaths:
           clap = min(vec_start.Mag(), vec_end.Mag())
 
         hclosestapproach_pandora.Fill(clap)
-
+        htrackangle_pandora.Fill(theta)
 
 print n_pass
 print n_evt
@@ -123,5 +126,9 @@ hclosestapproach_pandora.Draw()
 canv.SaveAs("clap_pandora.eps")
 hclosestapproach_kalman.Draw()
 canv.SaveAs("clap_kalman.eps")
+htrackangle_pandora.Draw()
+canv.SaveAs("theta_pandora.eps")
+htrackangle_kalman.Draw()
+canv.SaveAs("theta_kalman.eps")
 
 
