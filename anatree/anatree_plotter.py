@@ -41,8 +41,10 @@ filepath = re.split(':|\(',firstfile_loc)[1]+'/'
 
 ct = 0
 for File in files:
-  ct += 1
-  outf.write(str(filepath+File+"\n"))
+  #maybe add a check so we know the file exists... don't want any segfaults
+  if os.path.isfile(filepath+File):
+    ct += 1
+    outf.write(str(filepath+File+"\n"))
   if ct == filelim:
     break
 outf.close()
