@@ -1,0 +1,42 @@
+process_name: PiZeroFilter
+source:
+{
+   module_type:  RootInput
+   maxEvents: 1000  
+}
+
+services:
+{
+  TFileService: 
+  { 
+    fileName: "test2.hist"
+  }
+}
+    
+physics:
+{
+  filters:
+  {
+    PiZeroFilter:
+    {
+      module_type: FinalStateParticleFilter
+      GenieModuleLabel: generator
+      PDG: [ 2212, 13, 111 ]
+    }
+  }
+
+  pathA:  [ PiZeroFilter ]
+  outA: [ out1 ]
+  end_paths: [ outA ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type:  RootOutput
+    fileName: "test2.root"
+    SelectEvents: { SelectEvents: [ pathA ] }
+    outputCommands: [ "keep *" ]
+  }
+}
