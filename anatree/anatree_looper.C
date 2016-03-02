@@ -6,8 +6,8 @@ TH1D* hclosestapproach_kalman = new TH1D("Closest approach","Closest Approach (K
 TH1D* hclosestapproach_pandora = new TH1D("Closest approach","Closest Approach (Pandora); cm",200,0,100);
 TH1D* htrackangle_pandora = new TH1D("Track Angle","Track Angle (Pandora); radians", 200, 0, 6.5);
 TH1D* htrackangle_kalman = new TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5);
-TH1F* htracklen_pandora = new TH1F("Track Length", "Track Length (Pandora); cm", 2000, 0, 2000);
-TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 2000, 0, 2000);
+TH1F* htracklen_pandora = new TH1F("Track Length", "Track Length (Pandora); cm", 1000, 0, 500);
+TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 1000, 0, 500);
 
 std::vector <std::string> paths;
 
@@ -19,12 +19,25 @@ float trkstartx_trackkalmanhit[kmax], trkstarty_trackkalmanhit[kmax], trkstartz_
 float trkendx_trackkalmanhit[kmax], trkendy_trackkalmanhit[kmax], trkendz_trackkalmanhit[kmax], trkendx_pandoraNuKHit[kmax], trkendy_pandoraNuKHit[kmax], trkendz_pandoraNuKHit[kmax];
 float nuvtxx_truth[10], nuvtxy_truth[10], nuvtxz_truth[10];
 float trklen_trackkalmanhit[kmax], trklen_pandoraNuKHit[kmax];
+bool vtx_truth = true;
+bool yz_only = true;
 
 TVector3 vec_start, vec_end, start_end, proj, perp;
 
 std::string s_suffix = "";
 int n_evt = 0;
 int n_pass = 0;
+
+/*if vtx_truth == true {
+	nuvtxx = nuvtxx_truth;
+	nuvtxy = nuvtxy_truth;
+	nuvtxx = nuvtxz_truth;
+} else {
+	nuvtxx = 
+	nuvtxy = 
+	nuvtxz = 
+}*/ 
+	
 
 void loop(int mypdg){
 	if(mypdg == 13) s_suffix = "_mu";
@@ -44,7 +57,6 @@ void loop(int mypdg){
 
 	for(unsigned int fs = 0; fs < paths.size(); fs++){
 		if(fs % 10 == 0) std::cout << fs << "/" << paths.size() << " files scanned" << std::endl;
-
 
 		TFile* infile = new TFile(paths[fs].c_str());
 		TTree* tree = (TTree*)(infile->Get("analysistree/anatree"));
@@ -97,14 +109,23 @@ void loop(int mypdg){
 	          			if( trkpdgtruth_trackkalmanhit[j] != mypdg)
 	            			continue;
 
-					double clap;
-					double dx = trkstartx_trackkalmanhit[j] - nuvtxx_truth[i];
-	        		double dy = trkstarty_trackkalmanhit[j] - nuvtxy_truth[i];
-	        		double dz = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
-	        		hdisttovert_kalman->Fill(sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2)));
+				double clap;
+				double dx_start = 0;
+				double dx_end = 0;
 
-	        		vec_start =  TVector3(dx, dy, dz);
-	        		vec_end =  TVector3(trkendx_trackkalmanhit[j] - nuvtxx_truth[i], trkendy_trackkalmanhit[j] - nuvtxy_truth[i], trkendz_trackkalmanhit[j] - nuvtxz_truth[i]);
+				if (yz_only == false) {
+					dx_end = trkendx_trackkalmanhit[j] - nuvtxx_truth[i];
+					dx_start = trkstartx_trackkalmanhit[j] - nuvtxx_truth[i];
+				}
+					
+				double dy_start = trkstarty_trackkalmanhit[j] - nuvtxy_truth[i];
+	        		double dz_start = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
+				double dy_end = trkendy_trackkalmanhit[j] - nuvtxy_truth[i];
+				double dz_end = trkendz_trackkalmanhit[j] - nuvtxz_truth[i];
+	        		hdisttovert_kalman->Fill(sqrt(pow(dx_start,2)+pow(dy_start,2)+pow(dz_start,2)));
+
+	        		vec_start =  TVector3(dx_start, dy_start, dz_start);
+	        		vec_end =  TVector3(dx_end, dy_end, dz_end);
 	        		start_end =  TVector3(trkstartx_trackkalmanhit[j] - trkendx_trackkalmanhit[j], trkstarty_trackkalmanhit[j] - trkendy_trackkalmanhit[j], trkstartz_trackkalmanhit[j] - trkendz_trackkalmanhit[j]);
 	        		proj = ( vec_start.Dot(start_end) / (start_end.Dot(start_end)) ) * start_end;
 	        		perp = proj - vec_start;
@@ -127,14 +148,24 @@ void loop(int mypdg){
 	          			if( trkpdgtruth_pandoraNuKHit[j] != mypdg)
 	            			continue;
 
-					double clap;
-					double dx = trkstartx_pandoraNuKHit[j] - nuvtxx_truth[i];
+				double clap;
+				double dx_start = 0;
+				double dx_end = 0;
+				if (yz_only == false) {
+					dx_end = trkendx_pandoraNuKHit[j] - nuvtxx_truth[i];
+					dx_start = trkstartx_pandoraNuKHit[j] - nuvtxx_truth[i];
+				}
+					
+				double dy_start = trkstarty_pandoraNuKHit[j] - nuvtxy_truth[i];
+	        		double dz_start = trkstartz_pandoraNuKHit[j] - nuvtxz_truth[i];
+				double dy_end = trkendy_pandoraNuKHit[j] - nuvtxy_truth[i];
+				double dz_end = trkendz_pandoraNuKHit[j] - nuvtxz_truth[i];
 	        		double dy = trkstarty_pandoraNuKHit[j] - nuvtxy_truth[i];
 	        		double dz = trkstartz_pandoraNuKHit[j] - nuvtxz_truth[i];
-	        		hdisttovert_pandora->Fill(sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2)));
+	        		hdisttovert_pandora->Fill(sqrt(pow(dx_start,2)+pow(dy_start,2)+pow(dz_start,2)));
 
-	        		vec_start = TVector3(dx, dy, dz);
-	        		vec_end = TVector3(trkendx_pandoraNuKHit[j] - nuvtxx_truth[i], trkendy_pandoraNuKHit[j] - nuvtxy_truth[i], trkendz_pandoraNuKHit[j] - nuvtxz_truth[i]);
+	        		vec_start = TVector3(dx_start, dy_start, dz_start);
+	        		vec_end = TVector3(dx_end, dy_end, dz_end);
 	        		start_end = TVector3(trkstartx_pandoraNuKHit[j] - trkendx_pandoraNuKHit[j], trkstarty_pandoraNuKHit[j] - trkendy_pandoraNuKHit[j], trkstartz_pandoraNuKHit[j] - trkendz_pandoraNuKHit[j]);
 	        		proj = ( vec_start.Dot(start_end) / (start_end.Dot(start_end)) ) * start_end;
 	        		perp = proj - vec_start;
