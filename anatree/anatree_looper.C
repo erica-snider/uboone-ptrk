@@ -6,6 +6,8 @@ TH1D* hclosestapproach_kalman = new TH1D("Closest approach","Closest Approach (K
 TH1D* hclosestapproach_pandora = new TH1D("Closest approach","Closest Approach (Pandora); cm",200,0,100);
 TH1D* htrackangle_pandora = new TH1D("Track Angle","Track Angle (Pandora); radians", 200, 0, 6.5);
 TH1D* htrackangle_kalman = new TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5);
+TH1F* htracklen_pandora = new TH1F("Track Length", "Track Length (Pandora); cm", 2000, 0, 2000);
+TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 2000, 0, 2000);
 
 std::vector <std::string> paths;
 
@@ -16,6 +18,7 @@ int trkpdgtruth_trackkalmanhit[kmax], trkpdgtruth_pandoraNuKHit[kmax], mcevts_tr
 float trkstartx_trackkalmanhit[kmax], trkstarty_trackkalmanhit[kmax], trkstartz_trackkalmanhit[kmax], trkstartx_pandoraNuKHit[kmax], trkstarty_pandoraNuKHit[kmax], trkstartz_pandoraNuKHit[kmax];
 float trkendx_trackkalmanhit[kmax], trkendy_trackkalmanhit[kmax], trkendz_trackkalmanhit[kmax], trkendx_pandoraNuKHit[kmax], trkendy_pandoraNuKHit[kmax], trkendz_pandoraNuKHit[kmax];
 float nuvtxx_truth[10], nuvtxy_truth[10], nuvtxz_truth[10];
+float trklen_trackkalmanhit[kmax], trklen_pandoraNuKHit[kmax];
 
 TVector3 vec_start, vec_end, start_end, proj, perp;
 
@@ -69,6 +72,8 @@ void loop(int mypdg){
 		tree->SetBranchAddress("nuvtxx_truth", nuvtxx_truth);
 		tree->SetBranchAddress("nuvtxy_truth", nuvtxy_truth);
 		tree->SetBranchAddress("nuvtxz_truth", nuvtxz_truth);
+		tree->SetBranchAddress("trklen_trackkalmanhit", trklen_trackkalmanhit);
+		tree->SetBranchAddress("trklen_pandoraNuKHit", trklen_pandoraNuKHit);
 
 		for(int g = 0; g < tree->GetEntries(); g++){
 			tree->GetEntry(g);
@@ -115,6 +120,7 @@ void loop(int mypdg){
 
 	        		hclosestapproach_kalman->Fill(clap);
 	        		htrackangle_kalman->Fill(theta);
+				htracklen_kalman->Fill(trklen_trackkalmanhit[j]);
 				}
 	      		for(int j = 0; j < ntracks_pandoraNuKHit; j++){
 	        		if(mypdg != 0)
@@ -144,6 +150,7 @@ void loop(int mypdg){
 
 	        		hclosestapproach_pandora->Fill(clap);
 	        		htrackangle_pandora->Fill(theta);
+				htracklen_pandora->Fill(trklen_pandoraNuKHit[j]);
 				}
 			}
 		}
@@ -169,6 +176,10 @@ bool draw(){
 	canv->SaveAs(("plots/theta_pandora"+s_suffix+".eps").c_str());
 	htrackangle_kalman->Draw();
 	canv->SaveAs(("plots/theta_kalman"+s_suffix+".eps").c_str());
+	htracklen_kalman->Draw();
+	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".eps").c_str());
+	htracklen_pandora->Draw();
+	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
 
 	return false;
 }
