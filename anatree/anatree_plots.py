@@ -7,7 +7,6 @@ from ROOT import *
 import re
 import cmath
 
-
 hdisttovert_kalman = ROOT.TH1D("Distance to Vertex","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100)
 hdisttovert_pandora = ROOT.TH1D("Distance to Vertex","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100)
 hclosestapproach_kalman = ROOT.TH1D("Closest approach","Closest Approach (Kalman); cm",200,0,100)
@@ -15,8 +14,28 @@ hclosestapproach_pandora = ROOT.TH1D("Closest approach","Closest Approach (Pando
 htrackangle_pandora = ROOT.TH1D("Track Angle","Track Angle (Pandora); radians", 200, 0, 6.5)
 htrackangle_kalman = ROOT.TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5)
 
+suffix = ""
 
-filelim = 200
+if(len(sys.argv)) < 2:
+  print "Must have at least one argument (how many files to loop over)"
+  sys.exit()
+if(len(sys.argv)) == 3:
+  mypdg = int(sys.argv[2])
+  if mypdg == 13:
+    print "Sweet! Lookin' for muons"
+    suffix = "_mu"
+  elif mypdg == 111:
+    print "Okay, pions are more your thing"
+    suffix = "_pi0"
+  elif mypdg == 2212:
+    print "Protons! Those are cool, i guess"
+    suffix = "_p"
+  else:
+    print mypdg
+    print "We don't have any of that."
+    sys.exit()
+
+filelim = int(sys.argv[1])
 filepaths= []
 filenames = ''
 cmd2 = 'samweb list-definition-files prodgenie_bnb_nu_uboone_mcc7_ana'
@@ -66,6 +85,9 @@ for myfile in filepaths:
 
     for i in range(0,event.mcevts_truth):
       for j in range(0,event.ntracks_trackkalmanhit):
+        if len(sys.argv) == 3:
+	  if event.trkpdgtruth_trackkalmanhit[j] != mypdg:
+            continue
         dx = event.trkstartx_trackkalmanhit[j] - event.nuvtxx_truth[i]
         dy = event.trkstarty_trackkalmanhit[j] - event.nuvtxy_truth[i]
         dz = event.trkstartz_trackkalmanhit[j] - event.nuvtxz_truth[i]
@@ -90,6 +112,9 @@ for myfile in filepaths:
         htrackangle_kalman.Fill(theta)
 
       for j in range(0,event.ntracks_pandoraNuKHit):
+        if len(sys.argv) == 3:
+          if event.trkpdgtruth_pandoraNuKHit[j] != mypdg:
+            continue
         dx = event.trkstartx_pandoraNuKHit[j] - event.nuvtxx_truth[i]
         dy = event.trkstarty_pandoraNuKHit[j] - event.nuvtxy_truth[i]
         dz = event.trkstartz_pandoraNuKHit[j] - event.nuvtxz_truth[i]
@@ -119,16 +144,16 @@ print n_evt
 
 canv = ROOT.TCanvas()
 hdisttovert_pandora.Draw()
-canv.SaveAs("myplot_pandora.eps")
+canv.SaveAs("myplot_pandora"+suffix+".eps")
 hdisttovert_kalman.Draw()
-canv.SaveAs("myplot_kalman.eps")
+canv.SaveAs("myplot_kalman"+suffix+".eps")
 hclosestapproach_pandora.Draw()
-canv.SaveAs("clap_pandora.eps")
+canv.SaveAs("clap_pandora"+suffix+".eps")
 hclosestapproach_kalman.Draw()
-canv.SaveAs("clap_kalman.eps")
+canv.SaveAs("clap_kalman"+suffix+".eps")
 htrackangle_pandora.Draw()
-canv.SaveAs("theta_pandora.eps")
+canv.SaveAs("theta_pandora"+suffix+".eps")
 htrackangle_kalman.Draw()
-canv.SaveAs("theta_kalman.eps")
+canv.SaveAs("theta_kalman"+suffix+".eps")
 
 
