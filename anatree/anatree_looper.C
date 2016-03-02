@@ -12,19 +12,21 @@
 
 #include "anatree_looper.h"
 
-TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100);
-TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
-TH1D* hclosestapproach_kalman = new TH1D("Closest approach","Closest Approach (Kalman); cm",200,0,100);
-TH1D* hclosestapproach_pandora = new TH1D("Closest approach","Closest Approach (Pandora); cm",200,0,100);
-TH1D* htrackangle_pandora = new TH1D("Track Angle","Track Angle (Pandora); radians", 200, 0, 6.5);
-TH1D* htrackangle_kalman = new TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5);
-TH1F* htracklen_pandora = new TH1F("Track Length", "Track Length (Pandora); cm", 1000, 0, 500);
-TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 1000, 0, 500);
+TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex K","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100);
+TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex P","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
+TH1D* hclosestapproach_kalman = new TH1D("Closest approach K","Closest Approach (Kalman); cm",200,0,100);
+TH1D* hclosestapproach_pandora = new TH1D("Closest approach P","Closest Approach (Pandora); cm",200,0,100);
+TH1D* htrackangle_pandora = new TH1D("Track Angle K","Track Angle (Pandora); radians", 200, 0, 6.5);
+TH1D* htrackangle_kalman = new TH1D("Track Angle P", "Track Angle (Kalman); radians", 200, 0, 6.5);
+TH1F* htracklen_pandora = new TH1F("Track Length K", "Track Length (Pandora); cm", 1000, 0, 500);
+TH1F* htracklen_kalman = new TH1F("Track Length P", "Track Length (Kalman); cm", 1000, 0, 500);
+TH1D* hprotondistance = new TH1D("ProtonDist", "Proton Distance (Truth); cm",1000,0,10);
 
 std::vector <std::string> paths;
 
 #define kmax 25000
 int pdg[kmax], status[kmax];
+float StartPointx[kmax], StartPointy[kmax], StartPointz[kmax], EndPointx[kmax], EndPointy[kmax], EndPointz[kmax];
 short ntracks_trackkalmanhit, ntracks_pandoraNuKHit;
 int trkpdgtruth_trackkalmanhit[kmax], trkpdgtruth_pandoraNuKHit[kmax], mcevts_truth, geant_list_size;
 int trkpidpdg_trackkalmanhit[kmax], trkpidpdg_pandoraNuKHit[kmax];
@@ -41,6 +43,7 @@ std::string s_suffix = "";
 int n_evt = 0;
 int n_pass = 0;
 int n_protons = 0; int n_protons_kalman = 0; int n_protons_pandora = 0;
+double pdist;
 
 /*if vtx_truth == true {
 	nuvtxx = nuvtxx_truth;
@@ -79,6 +82,12 @@ void loop(int mypdg){
 		tree->SetBranchAddress("geant_list_size", &geant_list_size);
 		tree->SetBranchAddress("pdg", pdg);
 		tree->SetBranchAddress("status",status);
+		tree->SetBranchAddress("StartPointx",StartPointx);
+		tree->SetBranchAddress("StartPointy",StartPointy);
+		tree->SetBranchAddress("StartPointz",StartPointz);
+		tree->SetBranchAddress("EndPointx",EndPointx);
+		tree->SetBranchAddress("EndPointy",EndPointy);
+		tree->SetBranchAddress("EndPointz",EndPointz);
 		tree->SetBranchAddress("mcevts_truth", &mcevts_truth);
 		tree->SetBranchAddress("ntracks_trackkalmanhit", &ntracks_trackkalmanhit);
 		tree->SetBranchAddress("ntracks_pandoraNuKHit", &ntracks_pandoraNuKHit);
@@ -111,7 +120,13 @@ void loop(int mypdg){
 			// Our filtah
 			int n_p = 0; int n_mu = 0; int n_pi = 0;
 			for(int part = 0; part < geant_list_size; part++){
-				if(status[part] != 1) continue;
+				if(status[part] != 1)
+					continue;
+				if(pdg[part] == 2212){
+					pdist = sqrt(pow(StartPointx[part] - EndPointx[part],2) + pow(StartPointy[part] - EndPointy[part],2) + pow(StartPointz[part] - EndPointz[part],2));
+					hprotondistance->Fill(pdist);
+					if(pdist < 1.) continue;
+				}
 				if(pdg[part] == 111) 	n_pi++;
 				if(pdg[part] == 13)	n_mu++;
 				if(pdg[part] == 2212) 	n_p++;
@@ -233,6 +248,8 @@ bool draw(){
 	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".eps").c_str());
 	htracklen_pandora->Draw();
 	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
-
+	hprotondistance->Draw();
+	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
+	
 	return false;
 }
