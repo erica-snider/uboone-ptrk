@@ -39,7 +39,9 @@ void loop(int mypdg){
 	infile.close();
 
 
-	for(int fs = 0; fs < paths.size(); fs++){
+	for(unsigned int fs = 0; fs < paths.size(); fs++){
+		if(fs % 10 == 0) std::cout << fs << "/" << paths.size() << " files scanned" << std::endl;
+
 
 		TFile* infile = new TFile(paths[fs].c_str());
 		TTree* tree = (TTree*)(infile->Get("analysistree/anatree"));
@@ -84,15 +86,14 @@ void loop(int mypdg){
 				else
 				continue;
 
-
 	    	for(int i = 0; i < mcevts_truth; i++){
 	     		for(int j = 0; j < ntracks_trackkalmanhit; j++){
 	        		if(mypdg != 0)
 	          			if( trkpdgtruth_trackkalmanhit[j] != mypdg)
 	            			continue;
 
-							double clap;
-							double dx = trkstartx_trackkalmanhit[j] - nuvtxx_truth[i];
+					double clap;
+					double dx = trkstartx_trackkalmanhit[j] - nuvtxx_truth[i];
 	        		double dy = trkstarty_trackkalmanhit[j] - nuvtxy_truth[i];
 	        		double dz = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
 	        		hdisttovert_kalman->Fill(sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2)));
@@ -120,8 +121,8 @@ void loop(int mypdg){
 	          			if( trkpdgtruth_pandoraNuKHit[j] != mypdg)
 	            			continue;
 
-							double clap;
-							double dx = trkstartx_pandoraNuKHit[j] - nuvtxx_truth[i];
+					double clap;
+					double dx = trkstartx_pandoraNuKHit[j] - nuvtxx_truth[i];
 	        		double dy = trkstarty_pandoraNuKHit[j] - nuvtxy_truth[i];
 	        		double dz = trkstartz_pandoraNuKHit[j] - nuvtxz_truth[i];
 	        		hdisttovert_pandora->Fill(sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2)));
