@@ -1,3 +1,15 @@
+/*
+ * AnaTree Looper
+ * author: Davio Cianci with Claire Savard
+ *
+ * This module is called by anatree_plotter.py because python is really slow and bad at looping through large numbers
+ * of things.
+ * loop() is called once, and it reads a .txt file containing a list of paths to anatree hist files. We then loop through
+ * all events in each file and fill several histograms.
+ * draw() is called once, and it prints out a brief summary and saves the plots to a folder called "plots"
+ *
+ * */
+
 #include "anatree_looper.h"
 
 TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100);
@@ -12,7 +24,7 @@ TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 1
 std::vector <std::string> paths;
 
 #define kmax 25000
-int pdg[kmax];
+int pdg[kmax], status[kmax];
 short ntracks_trackkalmanhit, ntracks_pandoraNuKHit;
 int trkpdgtruth_trackkalmanhit[kmax], trkpdgtruth_pandoraNuKHit[kmax], mcevts_truth, geant_list_size;
 float trkstartx_trackkalmanhit[kmax], trkstarty_trackkalmanhit[kmax], trkstartz_trackkalmanhit[kmax], trkstartx_pandoraNuKHit[kmax], trkstarty_pandoraNuKHit[kmax], trkstartz_pandoraNuKHit[kmax];
@@ -64,7 +76,8 @@ void loop(int mypdg){
 
 		// set branches...
 		tree->SetBranchAddress("geant_list_size", &geant_list_size);
-		tree->SetBranchAddress("pdg", &pdg);
+		tree->SetBranchAddress("pdg", pdg);
+		tree->SetBranchAddress("status",status);
 		tree->SetBranchAddress("mcevts_truth", &mcevts_truth);
 		tree->SetBranchAddress("ntracks_trackkalmanhit", &ntracks_trackkalmanhit);
 		tree->SetBranchAddress("ntracks_pandoraNuKHit", &ntracks_pandoraNuKHit);
@@ -95,6 +108,7 @@ void loop(int mypdg){
 			// Our filtah
 			int n_p = 0; int n_mu = 0; int n_pi = 0;
 			for(int part = 0; part < geant_list_size; part++){
+				if(status[part] != 1) continue;
 				if(pdg[part] == 111) 	n_pi++;
 				if(pdg[part] == 13)		n_mu++;
 				if(pdg[part] == 2212) 	n_p++;
