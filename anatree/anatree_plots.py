@@ -14,7 +14,7 @@ hclosestapproach_kalman = ROOT.TH1D("Closest approach","Closest Approach (Kalman
 hclosestapproach_pandora = ROOT.TH1D("Closest approach","Closest Approach (Pandora); cm",200,0,100)
 
 
-filelim = 200
+filelim = 500
 filepaths= []
 filenames = ''
 cmd2 = 'samweb list-definition-files prodgenie_bnb_nu_uboone_mcc7_ana'
@@ -45,7 +45,21 @@ for myfile in filepaths:
   for event in tree:
     n_evt += 1
     # we want to check if an event has at least one proton, muon and pi0
-    
+    n_p = 0
+    n_mu = 0
+    n_pi = 0
+    for part in range(0,event.geant_list_size):
+      if event.pdg[part] == 111:
+        n_pi += 1
+      if event.pdg[part] == 13:
+        n_mu += 1
+      if event.pdg[part] == 2212:
+        n_p += 1
+   
+    if n_p and n_mu and n_pi:
+      n_pass += 1
+    else:
+      continue
 
 
     for i in range(0,event.mcevts_truth):
@@ -95,6 +109,9 @@ for myfile in filepaths:
 
         hclosestapproach_pandora.Fill(clap)
 
+
+print n_pass
+print n_evt
 
 
 canv = ROOT.TCanvas()
