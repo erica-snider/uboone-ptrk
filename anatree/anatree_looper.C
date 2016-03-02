@@ -15,6 +15,7 @@ std::vector <std::string> paths;
 int pdg[kmax];
 short ntracks_trackkalmanhit, ntracks_pandoraNuKHit;
 int trkpdgtruth_trackkalmanhit[kmax], trkpdgtruth_pandoraNuKHit[kmax], mcevts_truth, geant_list_size;
+int trkpidpdg_trackkalmanhit[kmax], trkpidpdg_pandoraNuKHit[kmax];
 float trkstartx_trackkalmanhit[kmax], trkstarty_trackkalmanhit[kmax], trkstartz_trackkalmanhit[kmax], trkstartx_pandoraNuKHit[kmax], trkstarty_pandoraNuKHit[kmax], trkstartz_pandoraNuKHit[kmax];
 float trkendx_trackkalmanhit[kmax], trkendy_trackkalmanhit[kmax], trkendz_trackkalmanhit[kmax], trkendx_pandoraNuKHit[kmax], trkendy_pandoraNuKHit[kmax], trkendz_pandoraNuKHit[kmax];
 float nuvtxx_truth[10], nuvtxy_truth[10], nuvtxz_truth[10];
@@ -87,6 +88,8 @@ void loop(int mypdg){
 		tree->SetBranchAddress("nuvtxz_truth", nuvtxz_truth);
 		tree->SetBranchAddress("trklen_trackkalmanhit", trklen_trackkalmanhit);
 		tree->SetBranchAddress("trklen_pandoraNuKHit", trklen_pandoraNuKHit);
+		tree->SetBranchAddress("trkpidpdg_pandoraNuKHit", trkpidpdg_pandoraNuKHit);
+		tree->SetBranchAddress("trkpidpdg_trackkalmanhit", trkpidpdg_trackkalmanhit);
 
 		for(int g = 0; g < tree->GetEntries(); g++){
 			tree->GetEntry(g);
@@ -96,7 +99,7 @@ void loop(int mypdg){
 			int n_p = 0; int n_mu = 0; int n_pi = 0;
 			for(int part = 0; part < geant_list_size; part++){
 				if(pdg[part] == 111) 	n_pi++;
-				if(pdg[part] == 13)		n_mu++;
+				if(pdg[part] == 13)	n_mu++;
 				if(pdg[part] == 2212) 	n_p++;
 			}
 			if(n_p && n_pi && n_mu)
@@ -107,10 +110,10 @@ void loop(int mypdg){
 
 	    	for(int i = 0; i < mcevts_truth; i++){
 	     		for(int j = 0; j < ntracks_trackkalmanhit; j++){
-					if(trkpdgtruth_trackkalmanhit[j] == 2212) n_protons_kalman++;
+					if(trkpidpdg_trackkalmanhit[j] == 2212)  n_protons_kalman++;
 					if(mypdg != 0)
-	          			if( trkpdgtruth_trackkalmanhit[j] != mypdg)
-	            			continue;
+					  if( trkpidpdg_trackkalmanhit[j] != mypdg)
+					    continue;
 
 				double clap;
 				double dx_start = 0;
@@ -147,10 +150,10 @@ void loop(int mypdg){
 				htracklen_kalman->Fill(trklen_trackkalmanhit[j]);
 				}
 	      		for(int j = 0; j < ntracks_pandoraNuKHit; j++){
-					if(trkpdgtruth_pandoraNuKHit[j] == 2212) n_protons_pandora++;
+					if(trkpidpdg_pandoraNuKHit[j] == 2212) n_protons_pandora++;
 					if(mypdg != 0)
-	          			if( trkpdgtruth_pandoraNuKHit[j] != mypdg)
-	            			continue;
+					  if( trkpidpdg_pandoraNuKHit[j] != mypdg)
+					    continue;
 
 				double clap;
 				double dx_start = 0;
