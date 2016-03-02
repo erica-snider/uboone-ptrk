@@ -27,6 +27,7 @@ TVector3 vec_start, vec_end, start_end, proj, perp;
 std::string s_suffix = "";
 int n_evt = 0;
 int n_pass = 0;
+int n_protons = 0; int n_protons_kalman = 0; int n_protons_pandora = 0;
 
 /*if vtx_truth == true {
 	nuvtxx = nuvtxx_truth;
@@ -56,7 +57,7 @@ void loop(int mypdg){
 
 
 	for(unsigned int fs = 0; fs < paths.size(); fs++){
-		if(fs % 10 == 0) std::cout << fs << "/" << paths.size() << " files scanned" << std::endl;
+		if(fs % 25 == 0) std::cout << fs << "/" << paths.size() << " files scanned" << std::endl;
 
 		TFile* infile = new TFile(paths[fs].c_str());
 		TTree* tree = (TTree*)(infile->Get("analysistree/anatree"));
@@ -102,10 +103,12 @@ void loop(int mypdg){
 				n_pass ++;
 				else
 				continue;
+			n_protons += n_p;
 
 	    	for(int i = 0; i < mcevts_truth; i++){
 	     		for(int j = 0; j < ntracks_trackkalmanhit; j++){
-	        		if(mypdg != 0)
+					if(trkpdgtruth_trackkalmanhit[j] == 2212) n_protons_kalman++;
+					if(mypdg != 0)
 	          			if( trkpdgtruth_trackkalmanhit[j] != mypdg)
 	            			continue;
 
@@ -144,7 +147,8 @@ void loop(int mypdg){
 				htracklen_kalman->Fill(trklen_trackkalmanhit[j]);
 				}
 	      		for(int j = 0; j < ntracks_pandoraNuKHit; j++){
-	        		if(mypdg != 0)
+					if(trkpdgtruth_pandoraNuKHit[j] == 2212) n_protons_pandora++;
+					if(mypdg != 0)
 	          			if( trkpdgtruth_pandoraNuKHit[j] != mypdg)
 	            			continue;
 
@@ -192,7 +196,8 @@ void loop(int mypdg){
 bool draw(){
 
 	std::cout << n_pass << "/" << n_evt << " events passed our lovely little filter." << std::endl;
-
+	std::cout << "We had " << n_protons << " protons, of which Kalman reconstructed " << n_protons_kalman << " tracks and pandora did " << n_protons_pandora << " tracks." << std::endl;
+	std::cout << "Pandora reco efficiency: " << float(n_protons_pandora)/float(n_protons) << " Kalman reco efficiency: " << float(n_protons_kalman)/float(n_protons) << "\n\n\n\n\n\n\n" << std::endl;
 
 	TCanvas* canv = new TCanvas();
 	hdisttovert_pandora->Draw();
