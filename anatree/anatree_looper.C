@@ -50,11 +50,26 @@ double pdist;
 	nuvtxy = nuvtxy_truth;
 	nuvtxx = nuvtxz_truth;
 } else {
-	nuvtxx = 
-	nuvtxy = 
-	nuvtxz = 
-}*/ 
-	
+	nuvtxx =
+	nuvtxy =
+	nuvtxz =
+}*/
+
+bool closeEnough(std::vector<TVector3> pis, std::vector<TVector3> mus, std::vector<TVector3> ps){
+	float buffer = .5;
+
+	for(unsigned int i = 0; i < pis.size(); i++){
+		for(unsigned int j = 0; j < pis.size(); j++){
+			if((pis[i]- mus[j]).Mag() < buffer){
+				for(unsigned int k = 0; k < ps.size(); k++){
+					if((pis[i] - ps[k]).Mag() < buffer && (mus[j] - ps[k]).Mag() < buffer)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 
 void loop(int mypdg){
 	if(mypdg == 13) s_suffix = "_mu";
@@ -118,7 +133,8 @@ void loop(int mypdg){
 			n_evt ++;
 
 			// Our filtah
-			int n_p = 0; int n_mu = 0; int n_pi = 0;
+			std::vector<TVector3> pis; std::vector<TVector3> mus; std::vector<TVector3> ps;
+			int n_p = 0; int n_pi = 0; int n_mu = 0;
 			for(int part = 0; part < geant_list_size; part++){
 				if(status[part] != 1)
 					continue;
@@ -127,14 +143,29 @@ void loop(int mypdg){
 					hprotondistance->Fill(pdist);
 					if(pdist < 1.) continue;
 				}
-				if(pdg[part] == 111) 	n_pi++;
-				if(pdg[part] == 13)	n_mu++;
-				if(pdg[part] == 2212) 	n_p++;
+				if(pdg[part] == 111){
+					pis.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
+					n_pi ++;
+				}
+				if(pdg[part] == 13){
+					mus.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
+					n_mu ++;
+				}
+				if(pdg[part] == 2212){
+					ps.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
+					n_p ++;
+				}
 			}
-			if(n_p && n_pi && n_mu)
-				n_pass ++;
-				else
-				continue;
+			if(n_p && n_mu && n_pi){
+				// Now, let's loop throu
+				if(closeEnough(pis,mus,ps))
+					n_pass++;
+				else{
+					continue;
+					std::cout << "FUCK YOU" << std::endl;
+				}
+			}
+			else continue;
 			n_protons += n_p;
 
 	    	for(int i = 0; i < mcevts_truth; i++){
@@ -152,9 +183,9 @@ void loop(int mypdg){
 					dx_end = trkendx_trackkalmanhit[j] - nuvtxx_truth[i];
 					dx_start = trkstartx_trackkalmanhit[j] - nuvtxx_truth[i];
 				}
-					
+
 				double dy_start = trkstarty_trackkalmanhit[j] - nuvtxy_truth[i];
-	        		double dz_start = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
+	        	double dz_start = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
 				double dy_end = trkendy_trackkalmanhit[j] - nuvtxy_truth[i];
 				double dz_end = trkendz_trackkalmanhit[j] - nuvtxz_truth[i];
 	        		hdisttovert_kalman->Fill(sqrt(pow(dx_start,2)+pow(dy_start,2)+pow(dz_start,2)));
@@ -191,7 +222,7 @@ void loop(int mypdg){
 					dx_end = trkendx_pandoraNuKHit[j] - nuvtxx_truth[i];
 					dx_start = trkstartx_pandoraNuKHit[j] - nuvtxx_truth[i];
 				}
-					
+
 				double dy_start = trkstarty_pandoraNuKHit[j] - nuvtxy_truth[i];
 	        		double dz_start = trkstartz_pandoraNuKHit[j] - nuvtxz_truth[i];
 				double dy_end = trkendy_pandoraNuKHit[j] - nuvtxy_truth[i];
@@ -250,6 +281,6 @@ bool draw(){
 	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
 	hprotondistance->Draw();
 	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
-	
+
 	return false;
 }
