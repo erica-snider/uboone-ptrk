@@ -24,6 +24,7 @@ TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm
 TH1F* htracklen_kalman = new TH1F("Track Length K", "Track Length (Kalman); cm", 1000, 0, 500);
 TH1F* htracklenshort_pandora = new TH1F("Short Track Length P", "Short Track Length (Pandora); cm", 50, 0, 50);
 TH1F* htracklenshort_kalman = new TH1F("Short Track Length K", "Short Track Length (Kalman); cm", 50, 0, 50);
+TH1D* hprotondistance = new TH1D("Proton Distance","Proton Distance;cm;entries",200,0,10);
 
 std::vector <std::string> paths;
 
@@ -36,6 +37,7 @@ float trkstartx_trackkalmanhit[kmax], trkstarty_trackkalmanhit[kmax], trkstartz_
 float trkendx_trackkalmanhit[kmax], trkendy_trackkalmanhit[kmax], trkendz_trackkalmanhit[kmax], trkendx_pandoraNuKHit[kmax], trkendy_pandoraNuKHit[kmax], trkendz_pandoraNuKHit[kmax];
 float nuvtxx_truth[10], nuvtxy_truth[10], nuvtxz_truth[10];
 float trklen_trackkalmanhit[kmax], trklen_pandoraNuKHit[kmax];
+float StartPointx[kmax], StartPointy[kmax], StartPointz[kmax], EndPointx[kmax], EndPointy[kmax], EndPointz[kmax];
 bool vtx_truth = true;
 bool yz_only = true;
 
@@ -49,17 +51,33 @@ long cnttruepdg_kalman, cnttruepdg_pandora;
 int cnttrashpdg_kalman, cnttrashpdg_pandora;
 int cntbothval_kalman, cntbothval_pandora;
 int cntdiffer_kalman, cntdiffer_pandora;
+float pdist = 0.;
 
 /*if vtx_truth == true {
 	nuvtxx = nuvtxx_truth;
 	nuvtxy = nuvtxy_truth;
 	nuvtxx = nuvtxz_truth;
 } else {
-	nuvtxx = 
-	nuvtxy = 
-	nuvtxz = 
-}*/ 
-	
+	nuvtxx =
+	nuvtxy =
+	nuvtxz =
+}*/
+
+bool closeEnough(std::vector<TVector3> pis, std::vector<TVector3> mus, std::vector<TVector3> ps){
+	float buffer = .5;
+
+	for(unsigned int i = 0; i < pis.size(); i++){
+		for(unsigned int j = 0; j < pis.size(); j++){
+			if((pis[i]- mus[j]).Mag() < buffer){
+				for(unsigned int k = 0; k < ps.size(); k++){
+					if((pis[i] - ps[k]).Mag() < buffer && (mus[j] - ps[k]).Mag() < buffer)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 
 void loop(int mypdg){
 	if(mypdg == 13) s_suffix = "_mu";
@@ -111,25 +129,51 @@ void loop(int mypdg){
 		tree->SetBranchAddress("trklen_pandoraNuKHit", trklen_pandoraNuKHit);
 		tree->SetBranchAddress("trkpidpdg_pandoraNuKHit", trkpidpdg_pandoraNuKHit);
 		tree->SetBranchAddress("trkpidpdg_trackkalmanhit", trkpidpdg_trackkalmanhit);
+		tree->SetBranchAddress("StartPointx", StartPointx);
+		tree->SetBranchAddress("StartPointy", StartPointy);
+		tree->SetBranchAddress("StartPointz", StartPointz);
+		tree->SetBranchAddress("EndPointx", EndPointx);
+		tree->SetBranchAddress("EndPointy", EndPointy);
+		tree->SetBranchAddress("EndPointz", EndPointz);
 
 		for(int g = 0; g < tree->GetEntries(); g++){
 			tree->GetEntry(g);
 			n_evt ++;
 
 			// Our filtah
-			int n_p = 0; int n_mu = 0; int n_pi = 0;
+			std::vector<TVector3> pis; std::vector<TVector3> mus; std::vector<TVector3> ps;
+			int n_p = 0; int n_pi = 0; int n_mu = 0;
 			for(int part = 0; part < geant_list_size; part++){
-				if(status[part] != 1) continue;
-				if(pdg[part] == 111) 	n_pi++;
-				if(pdg[part] == 13)	n_mu++;
-				if(pdg[part] == 2212) 	n_p++;
+
+				if(status[part] != 1)
+					continue;
+				if(pdg[part] == 2212){
+					pdist = sqrt(pow(StartPointx[part] - EndPointx[part],2) + pow(StartPointy[part] - EndPointy[part],2) + pow(StartPointz[part] - EndPointz[part],2));
+					hprotondistance->Fill(pdist);
+					if(pdist < 1.) continue;
+				}
+				if(pdg[part] == 111){
+					pis.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
+					n_pi ++;
+				}
+				if(pdg[part] == 13){
+					mus.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
+					n_mu ++;
+				}
+				if(pdg[part] == 2212){
+					ps.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
+					n_p ++;
+				}
 			}
-			if(n_p && n_pi && n_mu){
-				n_pass ++;
-			//	std::cout << "n_p: " << n_p;
-			}else{
-				continue;
+			if(n_p && n_mu && n_pi){
+				// Now, let's loop through
+				if(closeEnough(pis,mus,ps))
+					n_pass++;
+				else
+					continue;
 			}
+			else continue;
+
 			n_protons += n_p;
 			//std::cout << "           n_protons: " << n_protons << std::endl;
 
@@ -139,7 +183,7 @@ void loop(int mypdg){
 					if(mypdg != 0)
 					  if( trkpidpdg_trackkalmanhit[j] != mypdg)
 					    continue;
-					  
+
 				//std::cout << "---------------Kalman---------------------" << std::endl;
 				//std::cout << "true pdg: " << trkpdgtruth_trackkalmanhit[j] << "       pid pdg: " << trkpidpdg_trackkalmanhit[j] << std::endl;
 				cnttruepdg_kalman++;
@@ -161,9 +205,9 @@ void loop(int mypdg){
 					dx_end = trkendx_trackkalmanhit[j] - nuvtxx_truth[i];
 					dx_start = trkstartx_trackkalmanhit[j] - nuvtxx_truth[i];
 				}
-					
+
 				double dy_start = trkstarty_trackkalmanhit[j] - nuvtxy_truth[i];
-	        		double dz_start = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
+	        	double dz_start = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
 				double dy_end = trkendy_trackkalmanhit[j] - nuvtxy_truth[i];
 				double dz_end = trkendz_trackkalmanhit[j] - nuvtxz_truth[i];
 
@@ -221,7 +265,7 @@ void loop(int mypdg){
 					dx_end = trkendx_pandoraNuKHit[j] - nuvtxx_truth[i];
 					dx_start = trkstartx_pandoraNuKHit[j] - nuvtxx_truth[i];
 				}
-					
+
 				double dy_start = trkstarty_pandoraNuKHit[j] - nuvtxy_truth[i];
 	        		double dz_start = trkstartz_pandoraNuKHit[j] - nuvtxz_truth[i];
 				double dy_end = trkendy_pandoraNuKHit[j] - nuvtxy_truth[i];
@@ -301,11 +345,13 @@ bool draw(){
 	htracklen_kalman->Draw();
 	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".pdf").c_str());
 	htracklen_pandora->Draw();
-	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".pdf").c_str());
+	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
 	htracklenshort_kalman->Draw();
 	canv->SaveAs(("plots/trklenshort_kalman"+s_suffix+".pdf").c_str());
 	htracklenshort_pandora->Draw();
 	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".pdf").c_str());
+	hprotondistance->Draw();
+	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
 
 	return false;
 }
