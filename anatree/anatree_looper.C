@@ -16,6 +16,7 @@ TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex K","Distance to Vertex (
 TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex P","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
 TH1D* hclosestapproach_kalman = new TH1D("Closest approach K","Closest Approach (Kalman); cm",200,0,100);
 TH1D* hclosestapproach_pandora = new TH1D("Closest approach P","Closest Approach (Pandora); cm",200,0,100);
+//TH1D* hzoomclap_kalman = new TH1D("
 TH1D* htrackangle_pandora = new TH1D("Track Angle P","Track Angle (Pandora); radians", 200, 0, 6.5);
 TH1D* htrackangle_kalman = new TH1D("Track Angle K", "Track Angle (Kalman); radians", 200, 0, 6.5);
 TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm", 1000, 0, 500);
@@ -43,6 +44,10 @@ std::string s_suffix = "";
 int n_evt = 0;
 int n_pass = 0;
 int n_protons = 0; int n_protons_kalman = 0; int n_protons_pandora = 0;
+long cnttruepdg_kalman, cnttruepdg_pandora;
+int cnttrashpdg_kalman, cnttrashpdg_pandora;
+int cntbothval_kalman, cntbothval_pandora;
+int cntdiffer_kalman, cntdiffer_pandora;
 
 /*if vtx_truth == true {
 	nuvtxx = nuvtxx_truth;
@@ -133,7 +138,20 @@ void loop(int mypdg){
 					if(mypdg != 0)
 					  if( trkpidpdg_trackkalmanhit[j] != mypdg)
 					    continue;
-
+					  
+				//std::cout << "---------------Kalman---------------------" << std::endl;
+				//std::cout << "true pdg: " << trkpdgtruth_trackkalmanhit[j] << "       pid pdg: " << trkpidpdg_trackkalmanhit[j] << std::endl;
+				cnttruepdg_kalman++;
+				if (trkpdgtruth_trackkalmanhit[j] == -99999) {
+				      cnttrashpdg_kalman++;
+				}
+				else if (trkpdgtruth_trackkalmanhit[j] != -99999) {
+				      cntbothval_kalman++;
+				      if (abs(trkpdgtruth_trackkalmanhit[j]) != trkpidpdg_trackkalmanhit[j]) {
+					    cntdiffer_kalman++;
+				      }
+				}
+				
 				double clap;
 				double dx_start = 0;
 				double dx_end = 0;
@@ -158,6 +176,7 @@ void loop(int mypdg){
 	        		double theta = asin( (vec_start.Cross(vec_end)).Mag() / (vec_start.Mag() * vec_end.Mag()) );
 	        		double alpha = asin( (vec_start.Cross(perp)).Mag() / (vec_start.Mag() * perp.Mag()) );
 	        		double beta = asin( (vec_end.Cross(perp)).Mag() / (vec_end.Mag() * perp.Mag()) );
+				double angfromvtx = asin( (vec_start.Cross(-1*start_end)).Mag() / (vec_start.Mag() * start_end.Mag()) );
 
 	        		if (theta >= alpha && theta >= beta)
 	        			clap = perp.Mag();
@@ -165,7 +184,7 @@ void loop(int mypdg){
 	          			clap = min(vec_start.Mag(), vec_end.Mag());
 
 	        		hclosestapproach_kalman->Fill(clap);
-	        		htrackangle_kalman->Fill(theta);
+	        		htrackangle_kalman->Fill(angfromvtx);
 				htracklen_kalman->Fill(trklen_trackkalmanhit[j]);
 				htracklenshort_kalman->Fill(trklen_trackkalmanhit[j]);
 				}
@@ -174,7 +193,19 @@ void loop(int mypdg){
 					if(mypdg != 0)
 					  if( trkpidpdg_pandoraNuKHit[j] != mypdg)
 					    continue;
-
+				//std::cout << "---------------Pandora---------------------" << std::endl;
+				//std::cout << "true pdg: " << trkpdgtruth_pandoraNuKHit[j] << "       pid pdg: " << trkpidpdg_pandoraNuKHit[j] << std::endl;
+				cnttruepdg_pandora++;
+				if (trkpdgtruth_pandoraNuKHit[j] == -99999) {
+				      cnttrashpdg_pandora++;
+				}
+				else if (trkpdgtruth_pandoraNuKHit[j] != -99999) {
+				      cntbothval_pandora++;
+				      if (abs(trkpdgtruth_pandoraNuKHit[j]) != trkpidpdg_pandoraNuKHit[j]) {
+					    cntdiffer_pandora++;
+				      }
+				}
+				
 				double clap;
 				double dx_start = 0;
 				double dx_end = 0;
@@ -200,6 +231,7 @@ void loop(int mypdg){
 	        		double theta = asin( (vec_start.Cross(vec_end)).Mag() / (vec_start.Mag() * vec_end.Mag()) );
 	        		double alpha = asin( (vec_start.Cross(perp)).Mag() / (vec_start.Mag() * perp.Mag()) );
 	        		double beta = asin( (vec_end.Cross(perp)).Mag() / (vec_end.Mag() * perp.Mag()) );
+				double angfromvtx = asin( (vec_start.Cross(-1*start_end)).Mag() / (vec_start.Mag() * start_end.Mag()) );
 
 	        		if (theta >= alpha && theta >= beta)
 	          			clap = perp.Mag();
@@ -207,11 +239,20 @@ void loop(int mypdg){
 	          			clap = min(vec_start.Mag(), vec_end.Mag());
 
 	        		hclosestapproach_pandora->Fill(clap);
-	        		htrackangle_pandora->Fill(theta);
+	        		htrackangle_pandora->Fill(angfromvtx);
 				htracklen_pandora->Fill(trklen_pandoraNuKHit[j]);
 				htracklenshort_pandora->Fill(trklen_pandoraNuKHit[j]);
 				}
 			}
+			/*std::cout << "---Kalman---" << std::endl;
+			std::cout << "Total amount of particles: " << cnttruepdg_kalman << std::endl;
+			std::cout << "Number of trash true pdg's: " << cnttrashpdg_kalman << "        Number of not trash pdg's: " << cntbothval_kalman << std::endl;
+			std::cout << "Number of times true and pid pdg differed when true pdg is not trash: " << cntdiffer_kalman << std::endl << std::endl;
+			std::cout << "---Pandora---" << std::endl;
+			std::cout << "Total amount of particles: " << cnttruepdg_pandora << std::endl;
+			std::cout << "Number of trash true pdg's: " << cnttrashpdg_pandora << "        Number of not trash pdg's: " << cntbothval_pandora << std::endl;
+			std::cout << "Number of times true and pid pdg differed when true pdg is not trash: " << cntdiffer_pandora << std::endl;
+			std::cout << "\n\n\n\n";*/
 		}
 		infile->Close();
 	}
@@ -225,27 +266,27 @@ bool draw(){
 
 	TCanvas* canv = new TCanvas();
 	hdisttovert_pandora->Draw();
-	canv->SaveAs(("plots/myplot_pandora"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/myplot_pandora"+s_suffix+".pdf").c_str());
 	hdisttovert_kalman->Draw();
-	canv->SaveAs(("plots/myplot_kalman"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/myplot_kalman"+s_suffix+".pdf").c_str());
 	hclosestapproach_pandora->Draw();
-	canv->SaveAs(("plots/clap_pandora"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/clap_pandora"+s_suffix+".pdf").c_str());
 	hclosestapproach_kalman->Draw();
-	canv->SaveAs(("plots/clap_kalman"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/clap_kalman"+s_suffix+".pdf").c_str());
 	canv->SetLogy(true);
 	htrackangle_pandora->Draw();
-	canv->SaveAs(("plots/theta_pandora"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/theta_pandora"+s_suffix+".pdf").c_str());
 	htrackangle_kalman->Draw();
 	canv->SetLogy(false);
-	canv->SaveAs(("plots/theta_kalman"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/theta_kalman"+s_suffix+".pdf").c_str());
 	htracklen_kalman->Draw();
-	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".pdf").c_str());
 	htracklen_pandora->Draw();
-	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".pdf").c_str());
 	htracklenshort_kalman->Draw();
-	canv->SaveAs(("plots/trklenshort_kalman"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/trklenshort_kalman"+s_suffix+".pdf").c_str());
 	htracklenshort_pandora->Draw();
-	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".pdf").c_str());
 
 	return false;
 }
