@@ -134,7 +134,7 @@ void loop(int mypdg){
 			std::vector<TVector3> pis; std::vector<TVector3> mus; std::vector<TVector3> ps;
 			int n_p = 0; int n_pi = 0; int n_mu = 0;
 			for(int part = 0; part < geant_list_size; part++){
-<<<<<<< HEAD
+
 				if(status[part] != 1)
 					continue;
 				if(pdg[part] == 2212){
@@ -163,36 +163,7 @@ void loop(int mypdg){
 					continue;
 			}
 			else continue;
-=======
-				if(status[part] != 1)
-					continue;
-				if(pdg[part] == 2212){
-					pdist = sqrt(pow(StartPointx[part] - EndPointx[part],2) + pow(StartPointy[part] - EndPointy[part],2) + pow(StartPointz[part] - EndPointz[part],2));
-						hprotondistance->Fill(pdist);
-						if(pdist < 1.) continue;
-					}
-					if(pdg[part] == 111){
-						pis.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
-						n_pi ++;
-					}
-					if(pdg[part] == 13){
-						mus.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
-						n_mu ++;
-					}
-					if(pdg[part] == 2212){
-						ps.push_back(TVector3(StartPointx[part],StartPointy[part],StartPointz[part]));
-						n_p ++;
-					}
-				}
-				if(n_p && n_mu && n_pi){
-					// Now, let's loop through
-					if(closeEnough(pis,mus,ps))
-					n_pass++;
-					else
-					continue;
-				}
-				else continue;
->>>>>>> dd36b1889311d00240f10dffb9f0a055eaa1ebfc
+
 			n_protons += n_p;
 			//std::cout << "           n_protons: " << n_protons << std::endl;
 
@@ -346,7 +317,6 @@ bool draw(){
 	htracklen_kalman->Draw();
 	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".pdf").c_str());
 	htracklen_pandora->Draw();
-<<<<<<< HEAD
 	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
 	htracklenshort_kalman->Draw();
 	canv->SaveAs(("plots/trklenshort_kalman"+s_suffix+".pdf").c_str());
@@ -354,15 +324,6 @@ bool draw(){
 	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".pdf").c_str());
 	hprotondistance->Draw();
 	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
-=======
-	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".pdf").c_str());
-	htracklenshort_kalman->Draw();
-	canv->SaveAs(("plots/trklenshort_kalman"+s_suffix+".pdf").c_str());
-	htracklenshort_pandora->Draw();
-	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".pdf").c_str());
-	hprotondistance->Draw();
-	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
->>>>>>> dd36b1889311d00240f10dffb9f0a055eaa1ebfc
 
 	return false;
 }
