@@ -16,7 +16,8 @@ TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex K","Distance to Vertex (
 TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex P","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
 TH1D* hclosestapproach_kalman = new TH1D("Closest approach K","Closest Approach (Kalman); cm",200,0,100);
 TH1D* hclosestapproach_pandora = new TH1D("Closest approach P","Closest Approach (Pandora); cm",200,0,100);
-//TH1D* hzoomclap_kalman = new TH1D("
+TH1D* hzoomclap_kalman = new TH1D("Closest Approach K (zoom)", "Closest Approach (Kalman, zoomed in); cm", 40, 0, 20);
+TH1D* hzoomclap_pandora = new TH1D("Closest Approach P (zoom)", "Closest Approach (Pandora, zoomed in); cm", 40, 0, 20);
 TH1D* htrackangle_pandora = new TH1D("Track Angle P","Track Angle (Pandora); radians", 200, 0, 6.5);
 TH1D* htrackangle_kalman = new TH1D("Track Angle K", "Track Angle (Kalman); radians", 200, 0, 6.5);
 TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm", 1000, 0, 500);
@@ -152,7 +153,7 @@ void loop(int mypdg){
 				      }
 				}
 				
-				double clap;
+				double clap, disttovert;
 				double dx_start = 0;
 				double dx_end = 0;
 
@@ -165,7 +166,6 @@ void loop(int mypdg){
 	        		double dz_start = trkstartz_trackkalmanhit[j] - nuvtxz_truth[i];
 				double dy_end = trkendy_trackkalmanhit[j] - nuvtxy_truth[i];
 				double dz_end = trkendz_trackkalmanhit[j] - nuvtxz_truth[i];
-	        		hdisttovert_kalman->Fill(sqrt(pow(dx_start,2)+pow(dy_start,2)+pow(dz_start,2)));
 
 	        		vec_start =  TVector3(dx_start, dy_start, dz_start);
 	        		vec_end =  TVector3(dx_end, dy_end, dz_end);
@@ -182,8 +182,16 @@ void loop(int mypdg){
 	        			clap = perp.Mag();
 	        		else
 	          			clap = min(vec_start.Mag(), vec_end.Mag());
+				
+				if (vec_start.Mag() < vec_end.Mag()) {
+					disttovert = vec_start.Mag();
+				} else {
+					disttovert = vec_end.Mag();
+				}
 
+				hdisttovert_kalman->Fill(disttovert);
 	        		hclosestapproach_kalman->Fill(clap);
+				hzoomclap_kalman->Fill(clap);
 	        		htrackangle_kalman->Fill(angfromvtx);
 				htracklen_kalman->Fill(trklen_trackkalmanhit[j]);
 				htracklenshort_kalman->Fill(trklen_trackkalmanhit[j]);
@@ -206,7 +214,7 @@ void loop(int mypdg){
 				      }
 				}
 				
-				double clap;
+				double clap, disttovert;
 				double dx_start = 0;
 				double dx_end = 0;
 				if (yz_only == false) {
@@ -220,7 +228,6 @@ void loop(int mypdg){
 				double dz_end = trkendz_pandoraNuKHit[j] - nuvtxz_truth[i];
 	        		double dy = trkstarty_pandoraNuKHit[j] - nuvtxy_truth[i];
 	        		double dz = trkstartz_pandoraNuKHit[j] - nuvtxz_truth[i];
-	        		hdisttovert_pandora->Fill(sqrt(pow(dx_start,2)+pow(dy_start,2)+pow(dz_start,2)));
 
 	        		vec_start = TVector3(dx_start, dy_start, dz_start);
 	        		vec_end = TVector3(dx_end, dy_end, dz_end);
@@ -237,8 +244,16 @@ void loop(int mypdg){
 	          			clap = perp.Mag();
 	        		else
 	          			clap = min(vec_start.Mag(), vec_end.Mag());
+				
+				if (vec_start.Mag() < vec_end.Mag()) {
+					disttovert = vec_start.Mag();
+				} else {
+					disttovert = vec_end.Mag();
+				}
 
+				hdisttovert_pandora->Fill(disttovert);
 	        		hclosestapproach_pandora->Fill(clap);
+				hzoomclap_pandora->Fill(clap);
 	        		htrackangle_pandora->Fill(angfromvtx);
 				htracklen_pandora->Fill(trklen_pandoraNuKHit[j]);
 				htracklenshort_pandora->Fill(trklen_pandoraNuKHit[j]);
@@ -266,13 +281,17 @@ bool draw(){
 
 	TCanvas* canv = new TCanvas();
 	hdisttovert_pandora->Draw();
-	canv->SaveAs(("plots/myplot_pandora"+s_suffix+".pdf").c_str());
+	canv->SaveAs(("plots/disttovert_pandora"+s_suffix+".pdf").c_str());
 	hdisttovert_kalman->Draw();
-	canv->SaveAs(("plots/myplot_kalman"+s_suffix+".pdf").c_str());
+	canv->SaveAs(("plots/disttovert_kalman"+s_suffix+".pdf").c_str());
 	hclosestapproach_pandora->Draw();
 	canv->SaveAs(("plots/clap_pandora"+s_suffix+".pdf").c_str());
 	hclosestapproach_kalman->Draw();
 	canv->SaveAs(("plots/clap_kalman"+s_suffix+".pdf").c_str());
+	hzoomclap_kalman->Draw();
+	canv->SaveAs(("plots/zoomclap_kalman"+s_suffix+".pdf").c_str());
+	hzoomclap_pandora->Draw();
+	canv->SaveAs(("plots/zoomclap_pandora"+s_suffix+".pdf").c_str());
 	canv->SetLogy(true);
 	htrackangle_pandora->Draw();
 	canv->SaveAs(("plots/theta_pandora"+s_suffix+".pdf").c_str());
