@@ -20,6 +20,8 @@ TH1D* htrackangle_pandora = new TH1D("Track Angle","Track Angle (Pandora); radia
 TH1D* htrackangle_kalman = new TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5);
 TH1F* htracklen_pandora = new TH1F("Track Length", "Track Length (Pandora); cm", 1000, 0, 500);
 TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 1000, 0, 500);
+TH1F* htracklenshort_pandora = new TH1F("Short Track Length", "Short Track Length (Pandora); cm", 50, 0, 50);
+TH1F* htracklenshort_kalman = new TH1F("Short Track Length", "Short Track Length (Kalman); cm", 50, 0, 50);
 
 std::vector <std::string> paths;
 
@@ -116,11 +118,14 @@ void loop(int mypdg){
 				if(pdg[part] == 13)	n_mu++;
 				if(pdg[part] == 2212) 	n_p++;
 			}
-			if(n_p && n_pi && n_mu)
+			if(n_p && n_pi && n_mu){
 				n_pass ++;
-				else
+			//	std::cout << "n_p: " << n_p;
+			}else{
 				continue;
+			}
 			n_protons += n_p;
+			//std::cout << "           n_protons: " << n_protons << std::endl;
 
 	    	for(int i = 0; i < mcevts_truth; i++){
 	     		for(int j = 0; j < ntracks_trackkalmanhit; j++){
@@ -162,6 +167,7 @@ void loop(int mypdg){
 	        		hclosestapproach_kalman->Fill(clap);
 	        		htrackangle_kalman->Fill(theta);
 				htracklen_kalman->Fill(trklen_trackkalmanhit[j]);
+				htracklenshort_kalman->Fill(trklen_trackkalmanhit[j]);
 				}
 	      		for(int j = 0; j < ntracks_pandoraNuKHit; j++){
 					if(trkpidpdg_pandoraNuKHit[j] == 2212) n_protons_pandora++;
@@ -203,6 +209,7 @@ void loop(int mypdg){
 	        		hclosestapproach_pandora->Fill(clap);
 	        		htrackangle_pandora->Fill(theta);
 				htracklen_pandora->Fill(trklen_pandoraNuKHit[j]);
+				htracklenshort_pandora->Fill(trklen_pandoraNuKHit[j]);
 				}
 			}
 		}
@@ -225,14 +232,20 @@ bool draw(){
 	canv->SaveAs(("plots/clap_pandora"+s_suffix+".eps").c_str());
 	hclosestapproach_kalman->Draw();
 	canv->SaveAs(("plots/clap_kalman"+s_suffix+".eps").c_str());
+	canv->SetLogy(true);
 	htrackangle_pandora->Draw();
 	canv->SaveAs(("plots/theta_pandora"+s_suffix+".eps").c_str());
 	htrackangle_kalman->Draw();
+	canv->SetLogy(false);
 	canv->SaveAs(("plots/theta_kalman"+s_suffix+".eps").c_str());
 	htracklen_kalman->Draw();
 	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".eps").c_str());
 	htracklen_pandora->Draw();
 	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
+	htracklenshort_kalman->Draw();
+	canv->SaveAs(("plots/trklenshort_kalman"+s_suffix+".eps").c_str());
+	htracklenshort_pandora->Draw();
+	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".eps").c_str());
 
 	return false;
 }
