@@ -177,6 +177,19 @@ void loop(int mypdg){
 			n_protons += n_p;
 			//std::cout << "           n_protons: " << n_protons << std::endl;
 
+
+			std::vector <int> pdg_pandora;
+			// Now, we've gotta match everything to everything.
+			for(int j = 0; j < ntracks_trackkalmanhit; j++){
+				for(int part = 0; part < geant_list_size; part++){
+
+
+
+					//pdg_pandora.push_back(whateverpdgwedeemfit)
+				}
+			}
+
+
 	    	for(int i = 0; i < mcevts_truth; i++){
 	     		for(int j = 0; j < ntracks_trackkalmanhit; j++){
 					if(trkpidpdg_trackkalmanhit[j] == 2212)  n_protons_kalman++;
@@ -196,7 +209,7 @@ void loop(int mypdg){
 					    cntdiffer_kalman++;
 				      }
 				}
-				
+
 				double clap, disttovert;
 				double dx_start = 0;
 				double dx_end = 0;
@@ -220,13 +233,13 @@ void loop(int mypdg){
 	        		double theta = asin( (vec_start.Cross(vec_end)).Mag() / (vec_start.Mag() * vec_end.Mag()) );
 	        		double alpha = asin( (vec_start.Cross(perp)).Mag() / (vec_start.Mag() * perp.Mag()) );
 	        		double beta = asin( (vec_end.Cross(perp)).Mag() / (vec_end.Mag() * perp.Mag()) );
-				double angfromvtx = asin( (vec_start.Cross(-1*start_end)).Mag() / (vec_start.Mag() * start_end.Mag()) );
+					double angfromvtx = asin( (vec_start.Cross(-1*start_end)).Mag() / (vec_start.Mag() * start_end.Mag()) );
 
 	        		if (theta >= alpha && theta >= beta)
 	        			clap = perp.Mag();
 	        		else
 	          			clap = min(vec_start.Mag(), vec_end.Mag());
-				
+
 				if (vec_start.Mag() < vec_end.Mag()) {
 					disttovert = vec_start.Mag();
 				} else {
@@ -257,7 +270,7 @@ void loop(int mypdg){
 					    cntdiffer_pandora++;
 				      }
 				}
-				
+
 				double clap, disttovert;
 				double dx_start = 0;
 				double dx_end = 0;
@@ -288,7 +301,7 @@ void loop(int mypdg){
 	          			clap = perp.Mag();
 	        		else
 	          			clap = min(vec_start.Mag(), vec_end.Mag());
-				
+
 				if (vec_start.Mag() < vec_end.Mag()) {
 					disttovert = vec_start.Mag();
 				} else {
