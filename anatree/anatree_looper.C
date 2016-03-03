@@ -12,16 +12,16 @@
 
 #include "anatree_looper.h"
 
-TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100);
-TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
-TH1D* hclosestapproach_kalman = new TH1D("Closest approach","Closest Approach (Kalman); cm",200,0,100);
-TH1D* hclosestapproach_pandora = new TH1D("Closest approach","Closest Approach (Pandora); cm",200,0,100);
-TH1D* htrackangle_pandora = new TH1D("Track Angle","Track Angle (Pandora); radians", 200, 0, 6.5);
-TH1D* htrackangle_kalman = new TH1D("Track Angle", "Track Angle (Kalman); radians", 200, 0, 6.5);
-TH1F* htracklen_pandora = new TH1F("Track Length", "Track Length (Pandora); cm", 1000, 0, 500);
-TH1F* htracklen_kalman = new TH1F("Track Length", "Track Length (Kalman); cm", 1000, 0, 500);
-TH1F* htracklenshort_pandora = new TH1F("Short Track Length", "Short Track Length (Pandora); cm", 50, 0, 50);
-TH1F* htracklenshort_kalman = new TH1F("Short Track Length", "Short Track Length (Kalman); cm", 50, 0, 50);
+TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex K","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100);
+TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex P","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
+TH1D* hclosestapproach_kalman = new TH1D("Closest approach K","Closest Approach (Kalman); cm",200,0,100);
+TH1D* hclosestapproach_pandora = new TH1D("Closest approach P","Closest Approach (Pandora); cm",200,0,100);
+TH1D* htrackangle_pandora = new TH1D("Track Angle P","Track Angle (Pandora); radians", 200, 0, 6.5);
+TH1D* htrackangle_kalman = new TH1D("Track Angle K", "Track Angle (Kalman); radians", 200, 0, 6.5);
+TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm", 1000, 0, 500);
+TH1F* htracklen_kalman = new TH1F("Track Length K", "Track Length (Kalman); cm", 1000, 0, 500);
+TH1F* htracklenshort_pandora = new TH1F("Short Track Length P", "Short Track Length (Pandora); cm", 50, 0, 50);
+TH1F* htracklenshort_kalman = new TH1F("Short Track Length K", "Short Track Length (Kalman); cm", 50, 0, 50);
 
 std::vector <std::string> paths;
 
