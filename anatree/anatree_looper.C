@@ -12,16 +12,16 @@
 
 #include "anatree_looper.h"
 
-TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex K","Distance to Vertex (Kalman); cm, presumably; entries",200,0,100);
-TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex P","Distance to Vertex (Pandora); cm, presumably; entries",200,0,100);
+TH1D* hdisttovert_kalman = new TH1D("Distance to Vertex K","Distance to Vertex (Kalman); cm, presumably; entries",200,8,10);
+TH1D* hdisttovert_pandora = new TH1D("Distance to Vertex P","Distance to Vertex (Pandora); cm, presumably; entries",200,0,20);
 TH1D* hclosestapproach_kalman = new TH1D("Closest approach K","Closest Approach (Kalman); cm",200,0,100);
 TH1D* hclosestapproach_pandora = new TH1D("Closest approach P","Closest Approach (Pandora); cm",200,0,100);
 TH1D* hzoomclap_kalman = new TH1D("Closest Approach K (zoom)", "Closest Approach (Kalman, zoomed in); cm", 40, 0, 20);
 TH1D* hzoomclap_pandora = new TH1D("Closest Approach P (zoom)", "Closest Approach (Pandora, zoomed in); cm", 40, 0, 20);
 TH1D* htrackangle_pandora = new TH1D("Track Angle P","Track Angle (Pandora); radians", 200, 0, 6.5);
 TH1D* htrackangle_kalman = new TH1D("Track Angle K", "Track Angle (Kalman); radians", 200, 0, 6.5);
-TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm", 1000, 0, 500);
-TH1F* htracklen_kalman = new TH1F("Track Length K", "Track Length (Kalman); cm", 1000, 0, 500);
+TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm", 1000, 0, 50);
+TH1F* htracklen_kalman = new TH1F("Track Length K", "Track Length (Kalman); cm", 1000, 0, 50);
 TH1F* htracklenshort_pandora = new TH1F("Short Track Length P", "Short Track Length (Pandora); cm", 50, 0, 50);
 TH1F* htracklenshort_kalman = new TH1F("Short Track Length K", "Short Track Length (Kalman); cm", 50, 0, 50);
 TH1D* hprotondistance = new TH1D("Proton Distance","Proton Distance;cm;entries",200,0,10);
@@ -41,7 +41,7 @@ float StartPointx[kmax], StartPointy[kmax], StartPointz[kmax], EndPointx[kmax], 
 float theta_true[kmax], trktheta_pandoraNuKHit[kmax], trktheta_trackkalmanhit[kmax];
 float P[kmax], trkmom_trackkalmanhit[kmax], trkmom_pandoraNuKHit[kmax], pathlen[kmax];
 bool vtx_truth = true;
-bool yz_only = true;
+bool yz_only = false;
 
 TVector3 vec_start, vec_end, start_end, proj, perp;
 TVector3 truestart, trueend, kalmanstart, kalmanend, truevec, kalmanvec;
@@ -188,6 +188,7 @@ void loop(int mypdg){
 			//std::cout << "           n_protons: " << n_protons << std::endl;
 
 
+			// PDG MATCHING
 			std::vector <int> pdg_kalman;
 			  // Now, we've gotta match everything to everything.
 			  for(int j = 0; j < ntracks_trackkalmanhit; j++){
@@ -195,23 +196,34 @@ void loop(int mypdg){
 				double theta1, theta2;
 				int ourpdg;
 				for(int part = 0; part < geant_list_size; part++){
-					truestart = TVector3(0, StartPointy[part], StartPointz[part]);
-					trueend = TVector3(0, EndPointy[part], EndPointz[part]);
+					if(pdg[part] != 13)
+						continue;
+					if(abs(pdg[part]) == 22)
+						continue;
+
+					truestart = TVector3(StartPointx[part], StartPointy[part], StartPointz[part]);
+					trueend = TVector3(EndPointx[part], EndPointy[part], EndPointz[part]);
 					truevec = trueend - truestart;
-					kalmanstart = TVector3(0, trkstarty_trackkalmanhit[j], trkstartz_trackkalmanhit[j]);
-					kalmanend = TVector3(0, trkendy_trackkalmanhit[j], trkendz_trackkalmanhit[j]);
+					kalmanstart = TVector3(trkstartx_trackkalmanhit[j] - 9., trkstarty_trackkalmanhit[j], trkstartz_trackkalmanhit[j]);
+					kalmanend = TVector3(trkendx_trackkalmanhit[j] - 9., trkendy_trackkalmanhit[j], trkendz_trackkalmanhit[j]);
 					kalmanvec = kalmanend - kalmanstart;
 					theta1 = truevec.Angle(kalmanvec);
 					theta2 = truevec.Angle(-1 * kalmanvec);
-					
+
+					//std::cout << "Trux: " << StartPointx[part] << " Truy: " << StartPointy[part] << " Truz: " << StartPointz[part] << std::endl;
+					//if(min((truestart - kalmanstart).Mag(), (truestart - kalmanend).Mag()) == (truestart - kalmanstart).Mag())
+						//std::cout << "Recox: " << trkstartx_trackkalmanhit[j] << " Recoy: " << trkstarty_trackkalmanhit[j] << " Recoz: " << trkstartz_trackkalmanhit[j] << std::endl;
+					//else
+						//std::cout << "Recox: " << trkendx_trackkalmanhit[j] << " Recoy: " << trkendy_trackkalmanhit[j] << " Recoz: " << trkendz_trackkalmanhit[j] << std::endl;
+
 					if (min((truestart - kalmanstart).Mag(), (truestart - kalmanend).Mag()) > 10.) {
-						//std::cout << min((truestart - kalmanstart).Mag(), (truestart - kalmanend).Mag()) << std::endl;
+						//std::cout << "dist: " << min((truestart - kalmanstart).Mag(), (truestart - kalmanend).Mag()) << std::endl;
 						continue;
 					}
-					/*if (abs(truevec.Mag() - kalmanvec.Mag()) > 7.) {
-						std::cout << "track length: " << abs(truevec.Mag() - kalmanvec.Mag()) << std::endl;
-					        continue;
-					}*/
+					//if (abs(truevec.Mag() - kalmanvec.Mag()) > 7.) {
+					//	std::cout << "track length: " << abs(truevec.Mag() - kalmanvec.Mag()) << std::endl;
+					//        continue;
+					//}
 					if (min(theta1, theta2) > .33) {
 						//std::cout << "min theta: " << min(theta1, theta2) << std::endl;
 						continue;
@@ -219,22 +231,25 @@ void loop(int mypdg){
 					/*if (abs(theta_true[part] - trktheta_trackkalmanhit[j]) > TMath::Pi()/12) {
 					        continue;
 					}*/
-					if (abs(P[part] - trkmom_trackkalmanhit[j]) > .3) {
+					/*if (abs(P[part] - trkmom_trackkalmanhit[j]) > .3) {
 						std::cout << "momentum: " << abs(P[part] - trkmom_trackkalmanhit[j]) << std::endl;
 						continue;
-					}
-					if (abs(pathlen[part] - trklen_trackkalmanhit[j]) > 7.) {
+					}*/
+					/*if (abs(pathlen[part] - trklen_trackkalmanhit[j]) > 7.) {
 						std::cout << "track length: " << abs(pathlen[part] - trklen_trackkalmanhit[j]) << std::endl;
-					}
+					}*/
 					cnt++;
+					std::cout << "A PARTICLE WITH PDG = " << pdg[part] << " WENT THROUGH! " << part << std::endl;
 					ourpdg = pdg[part];
 				}
 				std::cout << cnt << std::endl;
 				if(cnt == 1)
-				 pdg_kalman.push_back(ourpdg);
+				  pdg_kalman.push_back(ourpdg);
 			}
-			
-			std::cout << "Kalman tracks: " << ntracks_trackkalmanhit << "      Matched pdg's:  " << pdg_kalman.size() << std::endl;
+
+			//std::cout << "Numbah of tracks: " << ntracks_trackkalmanhit << " Numbah of protons: " << n_p << " protons matched: " << pdg_kalman.size() << std::endl;
+			std::cout << "Numbah of tracks: " << ntracks_trackkalmanhit << " Numbah of muons: " << n_mu << " muons matched: " << pdg_kalman.size() << std::endl;
+			//std::cout << "Kalman tracks: " << ntracks_trackkalmanhit << "      Matched pdg's:  " << pdg_kalman.size() << std::endl;
 
 
 	    	for(int i = 0; i < mcevts_truth; i++){
@@ -378,12 +393,12 @@ void loop(int mypdg){
 }
 
 bool draw(){
-
+/*
 	std::cout << n_pass << "/" << n_evt << " events passed our lovely little filter." << std::endl;
 	std::cout << "We had " << n_protons << " protons, of which Kalman reconstructed " << n_protons_kalman << " tracks and pandora did " << n_protons_pandora << " tracks." << std::endl;
 	std::cout << "Pandora reco efficiency: " << float(n_protons_pandora)/float(n_protons) << " Kalman reco efficiency: " << float(n_protons_kalman)/float(n_protons) << "\n\n\n\n\n\n\n" << std::endl;
 
-	/*TCanvas* canv = new TCanvas();
+	TCanvas* canv = new TCanvas();
 	hdisttovert_pandora->Draw();
 	canv->SaveAs(("plots/disttovert_pandora"+s_suffix+".pdf").c_str());
 	hdisttovert_kalman->Draw();
@@ -403,7 +418,7 @@ bool draw(){
 	canv->SetLogy(false);
 	canv->SaveAs(("plots/theta_kalman"+s_suffix+".pdf").c_str());
 	htracklen_kalman->Draw();
-	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".pdf").c_str());
+	canv->SaveAs(("plots/trklen_kalman"+s_suffix+".eps").c_str());
 	htracklen_pandora->Draw();
 	canv->SaveAs(("plots/trklen_pandora"+s_suffix+".eps").c_str());
 	htracklenshort_kalman->Draw();
@@ -411,7 +426,7 @@ bool draw(){
 	htracklenshort_pandora->Draw();
 	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".pdf").c_str());
 	hprotondistance->Draw();
-	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());*/
-
+	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
+*/
 	return false;
 }
