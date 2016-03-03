@@ -38,10 +38,13 @@ float trkendx_trackkalmanhit[kmax], trkendy_trackkalmanhit[kmax], trkendz_trackk
 float nuvtxx_truth[10], nuvtxy_truth[10], nuvtxz_truth[10];
 float trklen_trackkalmanhit[kmax], trklen_pandoraNuKHit[kmax];
 float StartPointx[kmax], StartPointy[kmax], StartPointz[kmax], EndPointx[kmax], EndPointy[kmax], EndPointz[kmax];
+float theta_true[kmax], trktheta_pandoraNuKHit[kmax], trktheta_trackkalmanhit[kmax];
+float P[kmax], trkmom_trackkalmanhit[kmax], trkmom_pandoraNuKHit[kmax], pathlen[kmax];
 bool vtx_truth = true;
 bool yz_only = true;
 
 TVector3 vec_start, vec_end, start_end, proj, perp;
+TVector3 truestart, trueend, kalmanstart, kalmanend, truevec, kalmanvec;
 
 std::string s_suffix = "";
 int n_evt = 0;
@@ -135,6 +138,13 @@ void loop(int mypdg){
 		tree->SetBranchAddress("EndPointx", EndPointx);
 		tree->SetBranchAddress("EndPointy", EndPointy);
 		tree->SetBranchAddress("EndPointz", EndPointz);
+		tree->SetBranchAddress("theta", theta_true);
+		tree->SetBranchAddress("trktheta_trackkalmanhit", trktheta_trackkalmanhit);
+		tree->SetBranchAddress("trktheta_pandoraNuKHit", trktheta_pandoraNuKHit);
+		tree->SetBranchAddress("P", P);
+		tree->SetBranchAddress("trkmom_trackkalmanhit", trkmom_trackkalmanhit);
+		tree->SetBranchAddress("trkmom_pandoraNuKHit", trkmom_pandoraNuKHit);
+		tree->SetBranchAddress("pathlen", pathlen);
 
 		for(int g = 0; g < tree->GetEntries(); g++){
 			tree->GetEntry(g);
@@ -178,16 +188,53 @@ void loop(int mypdg){
 			//std::cout << "           n_protons: " << n_protons << std::endl;
 
 
-			std::vector <int> pdg_pandora;
-			// Now, we've gotta match everything to everything.
-			for(int j = 0; j < ntracks_trackkalmanhit; j++){
+			std::vector <int> pdg_kalman;
+			  // Now, we've gotta match everything to everything.
+			  for(int j = 0; j < ntracks_trackkalmanhit; j++){
+				int cnt = 0;
+				double theta1, theta2;
+				int ourpdg;
 				for(int part = 0; part < geant_list_size; part++){
-
-
-
-					//pdg_pandora.push_back(whateverpdgwedeemfit)
+					truestart = TVector3(0, StartPointy[part], StartPointz[part]);
+					trueend = TVector3(0, EndPointy[part], EndPointz[part]);
+					truevec = trueend - truestart;
+					kalmanstart = TVector3(0, trkstarty_trackkalmanhit[j], trkstartz_trackkalmanhit[j]);
+					kalmanend = TVector3(0, trkendy_trackkalmanhit[j], trkendz_trackkalmanhit[j]);
+					kalmanvec = kalmanend - kalmanstart;
+					theta1 = truevec.Angle(kalmanvec);
+					theta2 = truevec.Angle(-1 * kalmanvec);
+					
+					if (min((truestart - kalmanstart).Mag(), (truestart - kalmanend).Mag()) > 10.) {
+						//std::cout << min((truestart - kalmanstart).Mag(), (truestart - kalmanend).Mag()) << std::endl;
+						continue;
+					}
+					/*if (abs(truevec.Mag() - kalmanvec.Mag()) > 7.) {
+						std::cout << "track length: " << abs(truevec.Mag() - kalmanvec.Mag()) << std::endl;
+					        continue;
+					}*/
+					if (min(theta1, theta2) > .33) {
+						//std::cout << "min theta: " << min(theta1, theta2) << std::endl;
+						continue;
+					}
+					/*if (abs(theta_true[part] - trktheta_trackkalmanhit[j]) > TMath::Pi()/12) {
+					        continue;
+					}*/
+					if (abs(P[part] - trkmom_trackkalmanhit[j]) > .3) {
+						std::cout << "momentum: " << abs(P[part] - trkmom_trackkalmanhit[j]) << std::endl;
+						continue;
+					}
+					if (abs(pathlen[part] - trklen_trackkalmanhit[j]) > 7.) {
+						std::cout << "track length: " << abs(pathlen[part] - trklen_trackkalmanhit[j]) << std::endl;
+					}
+					cnt++;
+					ourpdg = pdg[part];
 				}
+				std::cout << cnt << std::endl;
+				if(cnt == 1)
+				 pdg_kalman.push_back(ourpdg);
 			}
+			
+			std::cout << "Kalman tracks: " << ntracks_trackkalmanhit << "      Matched pdg's:  " << pdg_kalman.size() << std::endl;
 
 
 	    	for(int i = 0; i < mcevts_truth; i++){
@@ -336,7 +383,7 @@ bool draw(){
 	std::cout << "We had " << n_protons << " protons, of which Kalman reconstructed " << n_protons_kalman << " tracks and pandora did " << n_protons_pandora << " tracks." << std::endl;
 	std::cout << "Pandora reco efficiency: " << float(n_protons_pandora)/float(n_protons) << " Kalman reco efficiency: " << float(n_protons_kalman)/float(n_protons) << "\n\n\n\n\n\n\n" << std::endl;
 
-	TCanvas* canv = new TCanvas();
+	/*TCanvas* canv = new TCanvas();
 	hdisttovert_pandora->Draw();
 	canv->SaveAs(("plots/disttovert_pandora"+s_suffix+".pdf").c_str());
 	hdisttovert_kalman->Draw();
@@ -364,7 +411,7 @@ bool draw(){
 	htracklenshort_pandora->Draw();
 	canv->SaveAs(("plots/trklenshort_pandora"+s_suffix+".pdf").c_str());
 	hprotondistance->Draw();
-	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());
+	canv->SaveAs(("plots/protondist"+s_suffix+".eps").c_str());*/
 
 	return false;
 }
