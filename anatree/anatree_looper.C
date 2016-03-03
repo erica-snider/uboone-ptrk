@@ -23,6 +23,7 @@ TH1F* htracklen_pandora = new TH1F("Track Length P", "Track Length (Pandora); cm
 TH1F* htracklen_kalman = new TH1F("Track Length K", "Track Length (Kalman); cm", 1000, 0, 500);
 TH1F* htracklenshort_pandora = new TH1F("Short Track Length P", "Short Track Length (Pandora); cm", 50, 0, 50);
 TH1F* htracklenshort_kalman = new TH1F("Short Track Length K", "Short Track Length (Kalman); cm", 50, 0, 50);
+TH1D* hprotondistance = new TH1D("Proton Distance","Proton Distance;cm;entries",200,0,10);
 
 std::vector <std::string> paths;
 
@@ -35,6 +36,7 @@ float trkstartx_trackkalmanhit[kmax], trkstarty_trackkalmanhit[kmax], trkstartz_
 float trkendx_trackkalmanhit[kmax], trkendy_trackkalmanhit[kmax], trkendz_trackkalmanhit[kmax], trkendx_pandoraNuKHit[kmax], trkendy_pandoraNuKHit[kmax], trkendz_pandoraNuKHit[kmax];
 float nuvtxx_truth[10], nuvtxy_truth[10], nuvtxz_truth[10];
 float trklen_trackkalmanhit[kmax], trklen_pandoraNuKHit[kmax];
+float StartPointx[kmax], StartPointy[kmax], StartPointz[kmax], EndPointx[kmax], EndPointy[kmax], EndPointz[kmax];
 bool vtx_truth = true;
 bool yz_only = true;
 
@@ -48,6 +50,7 @@ long cnttruepdg_kalman, cnttruepdg_pandora;
 int cnttrashpdg_kalman, cnttrashpdg_pandora;
 int cntbothval_kalman, cntbothval_pandora;
 int cntdiffer_kalman, cntdiffer_pandora;
+float pdist = 0.;
 
 /*if vtx_truth == true {
 	nuvtxx = nuvtxx_truth;
@@ -125,6 +128,12 @@ void loop(int mypdg){
 		tree->SetBranchAddress("trklen_pandoraNuKHit", trklen_pandoraNuKHit);
 		tree->SetBranchAddress("trkpidpdg_pandoraNuKHit", trkpidpdg_pandoraNuKHit);
 		tree->SetBranchAddress("trkpidpdg_trackkalmanhit", trkpidpdg_trackkalmanhit);
+		tree->SetBranchAddress("StartPointx", StartPointx);
+		tree->SetBranchAddress("StartPointy", StartPointy);
+		tree->SetBranchAddress("StartPointz", StartPointz);
+		tree->SetBranchAddress("EndPointx", EndPointx);
+		tree->SetBranchAddress("EndPointy", EndPointy);
+		tree->SetBranchAddress("EndPointz", EndPointz);
 
 		for(int g = 0; g < tree->GetEntries(); g++){
 			tree->GetEntry(g);
